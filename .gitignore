@@ -1,0 +1,41 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+frontend/node_modules
+frontend/.pnp
+frontend/.pnp.js
+
+# testing
+frontend/coverage
+
+# production
+frontend/build
+
+# misc
+frontend/.DS_Store
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# laravel
+
+backend/laravel-server/node_modules
+backend/laravel-server/public/hot
+backend/laravel-server/storage/*.key
+backend/laravel-server/vendor
+backend/laravel-server/public/storage
+backend/laravel-server/.env
+backend/laravel-server/.env.backup
+backend/laravel-server/.phpunit.result.cache
+backend/laravel-server/docker-compose.override.yml
+backend/laravel-server/Homestead.json
+backend/laravel-server/Homestead.yaml
+backend/laravel-server/npm-debug.log
+backend/laravel-server/yarn-error.log
+backend/laravel-server/.vscode
+backend/laravel-server/.idea
