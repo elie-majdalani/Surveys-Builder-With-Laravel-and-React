@@ -18,10 +18,12 @@ namespace Symfony\Component\HttpFoundation\Session\Storage\Handler;
  */
 class NullSessionHandler extends AbstractSessionHandler
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function close()
+    public function close(): bool
+    {
+        return true;
+    }
+
+    public function validateId(string $sessionId): bool
     {
         return true;
     }
@@ -29,23 +31,12 @@ class NullSessionHandler extends AbstractSessionHandler
     /**
      * {@inheritdoc}
      */
-    public function validateId($sessionId)
-    {
-        return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function doRead($sessionId)
+    protected function doRead(string $sessionId): string
     {
         return '';
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function updateTimestamp($sessionId, $data)
+    public function updateTimestamp(string $sessionId, string $data): bool
     {
         return true;
     }
@@ -53,7 +44,7 @@ class NullSessionHandler extends AbstractSessionHandler
     /**
      * {@inheritdoc}
      */
-    protected function doWrite($sessionId, $data)
+    protected function doWrite(string $sessionId, string $data): bool
     {
         return true;
     }
@@ -61,16 +52,13 @@ class NullSessionHandler extends AbstractSessionHandler
     /**
      * {@inheritdoc}
      */
-    protected function doDestroy($sessionId)
+    protected function doDestroy(string $sessionId): bool
     {
         return true;
     }
 
-    /**
-     * @return bool
-     */
-    public function gc($maxlifetime)
+    public function gc(int $maxlifetime): int|false
     {
-        return true;
+        return 0;
     }
 }
