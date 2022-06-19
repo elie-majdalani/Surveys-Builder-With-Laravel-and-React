@@ -19,21 +19,16 @@ Route::group([
     'prefix' => 'auth',
     'namespace' => 'App\Http\Controllers'
 
-], function ($router) {
+],  function ($router) {
     Route::middleware(['cors'])->group(function () {
-    Route::post('/register', 'AuthController@register');
     Route::post('/login', 'AuthController@login');
     Route::post('/logout', 'AuthController@logout');
     Route::get('/', 'AuthController@getAllItems');
     Route::get('/me', 'AuthController@me');
     Route::get('/addQuestion', 'AuthController@addQuestion');
-    Route::get('/addOption', 'AuthController@addOption');
-    Route::get('/addAnswer', 'AuthController@addAnswer');
+    Route::post('/addOption', 'AuthController@addOption');
+    Route::post('/addAnswer', 'AuthController@addAnswer');
     Route::post('/deleteQuestion/{request?}', 'AuthController@deleteQuestion');
-    Route::get('/getAllFavorites', 'AuthController@getAllFavorites');
-    Route::get('/search/{request?}', 'AuthController@search');
-    Route::get('/addItem/{request?}', 'AuthController@addItem');
-    Route::get('/addCategory/{request?}', 'AuthController@addCategory');
     });
 
 });

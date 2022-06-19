@@ -14,7 +14,6 @@ class Question extends Model
     }
     public $timestamps = false;
     protected $fillable = [
-        'name',
         'question',
         'type',
     ];

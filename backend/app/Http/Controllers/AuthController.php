@@ -17,18 +17,22 @@ class AuthController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'getAllItems', 'addOption', 'addAnswer', 'deleteQuestion']]);
+        $this->middleware('auth:api', ['except' => ['login', 'addQuestion', 'getAllItems', 'addOption', 'addAnswer', 'deleteQuestion', 'search']]);
     }
 
     public function login()
     {
-        $credentials = request(['email', 'password']);
+        $data = request()->getContent();
+        $data = json_decode($data, true);
 
-        if (!$token = JWTAuth::attempt($credentials)) {
+
+        if (!$token = JWTAuth::attempt($data)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-
-        return $this->respondWithToken($token);
+        return response()->json([
+            'status' => 'success',
+            'data' => $token
+        ], 200);
     }
 
 
@@ -87,45 +91,64 @@ class AuthController extends Controller
     //function add option to database
     public function addOption()
     {
-        $validator = validator()->make(request()->all(), [
+
+        //$data = $request->all();
+
+        $data = request()->getContent();
+        $data = json_decode($data, true);
+        $rules = [
             'question_id' => 'integer|required',
-            'option' => 'string|required',
-        ]);
+            'options' => 'array|required',
+        ];
+        $validator = validator()->make($data, $rules);
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()
             ], 400);
         }
-        $option = Option::create([
-            'question_id' => request('question_id'),
-            'option' => request('option'),
-        ]);
+        echo ($data['options']);
+        if ($data['options']) {
+            foreach ($data['options'] as $option) {
+                Option::create([
+                    'question_id' => $data['question_id'],
+                    'option' => $option
+                ]);
+            }
+        }
+
+
         return response()->json([
             'status' => 'success',
-            'data' => $option
+            'data' => $data
         ], 200);
     }
     //function add answer to database
     public function addAnswer()
     {
-        $validator = validator()->make(request()->all(), [
-            'question_id' => 'integer|required',
-            'answer' => 'string|required',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $validator->errors()
-            ], 400);
+        $data = request()->getContent();
+        $data = json_decode($data, true);
+        $data = $data['userAnswers'];
+        $counter = -1;
+        foreach ($data as $answer) {
+            $counter = $counter + 1;
+            $key = array_keys($data)[$counter];
+            if (gettype($answer) == "array") {
+                foreach ($answer as $ans) {
+                    Answer::create([
+                        'question_id' => $key,
+                        'answer' => $ans
+                    ]);
+                }
+            } else {
+                Answer::create([
+                    'question_id' => $key,
+                    'answer' => $answer
+                ]);
+            }
         }
-        $option = Answer::create([
-            'question_id' => request('question_id'),
-            'answer' => request('answer'),
-        ]);
         return response()->json([
-            'status' => 'success',
-            'data' => $option
+            'status' => 'success'
         ], 200);
     }
     //function delete question from database
