@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\UserController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
 Route::group([
 
     'middleware' => 'api',
@@ -27,10 +26,10 @@ Route::group([
     Route::post('/logout', 'AuthController@logout');
     Route::get('/', 'AuthController@getAllItems');
     Route::get('/me', 'AuthController@me');
-    Route::get('/getItemsByCategory/{request?}', 'AuthController@getItemsByCategory');
-    Route::get('/getAllCategories', 'AuthController@getAllCategories');
-    Route::get('/getItemById/{request?}', 'AuthController@getItemById');
-    Route::post('/addToFavorite/{request?}', 'AuthController@addToFavorite');
+    Route::get('/addQuestion', 'AuthController@addQuestion');
+    Route::get('/addOption', 'AuthController@addOption');
+    Route::get('/addAnswer', 'AuthController@addAnswer');
+    Route::post('/deleteQuestion/{request?}', 'AuthController@deleteQuestion');
     Route::get('/getAllFavorites', 'AuthController@getAllFavorites');
     Route::get('/search/{request?}', 'AuthController@search');
     Route::get('/addItem/{request?}', 'AuthController@addItem');
@@ -38,3 +37,5 @@ Route::group([
     });
 
 });
+// Route::post('/register', [UserController::class, 'signUp']);
+// Route::post('/login', [UserController::class, 'logIn']);

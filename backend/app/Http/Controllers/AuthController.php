@@ -7,42 +7,17 @@ use App\Http\Controllers\Controller;
 use App\Models\catagory;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\User;
-use App\Models\Item;
-use App\Models\Category;
-use App\Models\favorite;
+use App\Models\Question;
+use App\Models\Option;
+use App\Models\Answer;
 use Illuminate\Http\Request;
+use App\Http\Middleware\Cors;
 
 class AuthController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register', 'getAllItems', 'getItemsByCategory', 'getAllCategories', 'getItemById', 'search']]);
-    }
-
-
-    public function register()
-    {
-
-        $validator = validator()->make(request()->all(), [
-            'username' => 'string|required',
-            'email' => 'email|required',
-            'password' => 'string|min:6'
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $validator->errors()
-            ], 400);
-        }
-        $user = User::create([
-            'username' => request('username'),
-            'email' => request('email'),
-            'password' => bcrypt(request('password')),
-        ]);
-        return response()->json([
-            'status' => 'success',
-            'data' => $user
-        ], 200);
+        $this->middleware('auth:api', ['except' => ['login', 'getAllItems', 'addOption', 'addAnswer', 'deleteQuestion']]);
     }
 
     public function login()
@@ -78,109 +53,89 @@ class AuthController extends Controller
         return response()->json(auth()->user());
     }
 
+    //function get all questions with their options
     public function getAllItems()
     {
-        $items = Item::with('category')->get();
+        $questions = Question::with('Option')->get();
         return response()->json([
             'status' => 'success',
-            'data' => $items
+            'data' => $questions
         ], 200);
     }
-    //funtion to get all items by category
-    public function getItemsByCategory(request $request)
+    //function add question to database
+    public function addQuestion()
     {
-        $items = Item::with('category')->where('category_id', $request->id)->get();
-        return response()->json([
-            'status' => 'success',
-            'data' => $items
-        ], 200);
-    }
-
-    //function to get item by id
-    public function getItemById(request $request)
-    {
-        $item = Item::where('id', $request->id)->get();
-        return response()->json([
-            'status' => 'success',
-            'data' => $item
-        ], 200);
-    }
-
-    //function to get all categories
-    public function getAllCategories()
-    {
-        $categories = Category::all();
-        return response()->json([
-            'status' => 'success',
-            'data' => $categories
-        ], 200);
-    }
-
-    public function addToFavorite(request $request)
-    {
-        $user = Auth::user();
-        $item = Item::find($request->id);
-        $favorite = favorite::create([
-            'user_id' => $user->id,
-            'item_id' => $item->id
+        $validator = validator()->make(request()->all(), [
+            'question' => 'string|required',
+            'type' => 'string|required',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()
+            ], 400);
+        }
+        $question = Question::create([
+            'question' => request('question'),
+            'type' => request('type'),
         ]);
         return response()->json([
             'status' => 'success',
-            'data' => $favorite
+            'data' => $question
         ], 200);
     }
-    //function to get all favorites of user
-    public function getAllFavorites()
+    //function add option to database
+    public function addOption()
     {
-        $user = Auth::user();
-        $favorites = favorite::where('user_id', $user->id)->get('item_id');
-        $items = Item::whereIn('id', $favorites)->get();
-        return response()->json([
-            'status' => 'success',
-            'data' => $items
-        ], 200);
-    }
-
-    public function search(request $request)
-    {
-        $items = Item::where('name', 'like', '%' . $request->search . '%')->get();
-        return response()->json([
-            'status' => 'success',
-            'data' => $items
-        ], 200);
-    }
-
-    //fucntion let admin add new item
-    public function addItem(request $request)
-    {
-
-        $path = $request->image->file('image')->store('public/images');
-        $validatedData = $request->image->validate(['image' => 'required|image|mimes:jpg,png,jpeg,gif,svg|max:2048',]);
-        $name = $request->image->file('image')->getClientOriginalName();
-        $path = $request->image->file('image')->store('public/images');
-
-
-        $item = Item::create([
-            'name' => $request->name,
-            'description' => $request->description,
-            'price' => $request->price,
-            'category_id' => $request->category_id,
-            'image' => $path,$name
+        $validator = validator()->make(request()->all(), [
+            'question_id' => 'integer|required',
+            'option' => 'string|required',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()
+            ], 400);
+        }
+        $option = Option::create([
+            'question_id' => request('question_id'),
+            'option' => request('option'),
         ]);
         return response()->json([
             'status' => 'success',
-            'data' => $path,$name
+            'data' => $option
         ], 200);
     }
-    //fucntion only admin add new category
-    public function addCategory(request $request)
+    //function add answer to database
+    public function addAnswer()
     {
-        $category = Category::create([
-            'name' => $request->name
+        $validator = validator()->make(request()->all(), [
+            'question_id' => 'integer|required',
+            'answer' => 'string|required',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()
+            ], 400);
+        }
+        $option = Answer::create([
+            'question_id' => request('question_id'),
+            'answer' => request('answer'),
         ]);
         return response()->json([
             'status' => 'success',
-            'data' => $category
+            'data' => $option
+        ], 200);
+    }
+    //function delete question from database
+    public function deleteQuestion(Request $request)
+    {
+        $question = Question::find($request->id);
+        $question->delete();
+        return response()->json([
+            'status' => 'success',
+            'data' => $question
         ], 200);
     }
 }

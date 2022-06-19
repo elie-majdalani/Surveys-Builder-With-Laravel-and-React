@@ -4,7 +4,6 @@ namespace Illuminate\Broadcasting;
 
 use Ably\AblyRest;
 use Closure;
-use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Broadcasting\Broadcasters\AblyBroadcaster;
 use Illuminate\Broadcasting\Broadcasters\LogBroadcaster;
 use Illuminate\Broadcasting\Broadcasters\NullBroadcaster;
@@ -56,7 +55,7 @@ class BroadcastManager implements FactoryContract
     }
 
     /**
-     * Register the routes for handling broadcast channel authentication and sockets.
+     * Register the routes for handling broadcast authentication and sockets.
      *
      * @param  array|null  $attributes
      * @return void
@@ -75,41 +74,6 @@ class BroadcastManager implements FactoryContract
                 '\\'.BroadcastController::class.'@authenticate'
             )->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
         });
-    }
-
-    /**
-     * Register the routes for handling broadcast user authentication.
-     *
-     * @param  array|null  $attributes
-     * @return void
-     */
-    public function userAuthenticationRoutes(array $attributes = null)
-    {
-        if ($this->app instanceof CachesRoutes && $this->app->routesAreCached()) {
-            return;
-        }
-
-        $attributes = $attributes ?: ['middleware' => ['web']];
-
-        $this->app['router']->group($attributes, function ($router) {
-            $router->match(
-                ['get', 'post'], '/broadcasting/user-auth',
-                '\\'.BroadcastController::class.'@authenticateUser'
-            )->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
-        });
-    }
-
-    /**
-     * Register the routes for handling broadcast authentication and sockets.
-     *
-     * Alias of "routes" method.
-     *
-     * @param  array|null  $attributes
-     * @return void
-     */
-    public function channelAuthorizationRoutes(array $attributes = null)
-    {
-        return $this->routes($attributes);
     }
 
     /**
@@ -249,32 +213,16 @@ class BroadcastManager implements FactoryContract
      */
     protected function createPusherDriver(array $config)
     {
-        return new PusherBroadcaster($this->pusher($config));
-    }
-
-    /**
-     * Get a Pusher instance for the given configuration.
-     *
-     * @param  array  $config
-     * @return \Pusher\Pusher
-     */
-    public function pusher(array $config)
-    {
         $pusher = new Pusher(
-            $config['key'],
-            $config['secret'],
-            $config['app_id'],
-            $config['options'] ?? [],
-            isset($config['client_options']) && ! empty($config['client_options'])
-                    ? new GuzzleClient($config['client_options'])
-                    : null,
+            $config['key'], $config['secret'],
+            $config['app_id'], $config['options'] ?? []
         );
 
         if ($config['log'] ?? false) {
             $pusher->setLogger($this->app->make(LoggerInterface::class));
         }
 
-        return $pusher;
+        return new PusherBroadcaster($pusher);
     }
 
     /**
@@ -285,18 +233,7 @@ class BroadcastManager implements FactoryContract
      */
     protected function createAblyDriver(array $config)
     {
-        return new AblyBroadcaster($this->ably($config));
-    }
-
-    /**
-     * Get an Ably instance for the given configuration.
-     *
-     * @param  array  $config
-     * @return \Ably\AblyRest
-     */
-    public function ably(array $config)
-    {
-        return new AblyRest($config);
+        return new AblyBroadcaster(new AblyRest($config));
     }
 
     /**
@@ -381,7 +318,7 @@ class BroadcastManager implements FactoryContract
      */
     public function purge($name = null)
     {
-        $name ??= $this->getDefaultDriver();
+        $name = $name ?? $this->getDefaultDriver();
 
         unset($this->drivers[$name]);
     }
